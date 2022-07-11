@@ -1,45 +1,29 @@
-import os
 import requests
 import zipfile
-from pathlib import Path
 import re
-import shutil
+import io
 
 
 def main():
-    zipped_filename = "channel.zip"
-    unzipped_folder = "channel"
-
-    if not os.path.exists(zipped_filename):
-        resp = requests.get(f"http://www.pythonchallenge.com/pc/def/{zipped_filename}")
-        with open(zipped_filename, "w") as f:
-            f.write(bytes(resp.text, resp.encoding))
-        # os.system(f"wget www.pythonchallenge.com/pc/def/{zipped_filename}")
-
-    archive = zipfile.ZipFile(zipped_filename, "r")
-
-    if not os.path.exists(unzipped_folder):
-        archive.extractall(unzipped_folder)
+    resp = requests.get(f"http://www.pythonchallenge.com/pc/def/channel.zip")
+    zip_data = io.BytesIO(resp.content)
 
     pattern = r"nothing is (\d+)"
     nothing = "90052"
     comments = ""
-    while True:
-        next_filepath = f"{unzipped_folder}/{nothing}.txt"
-        next_file = Path(next_filepath).open("r").read()
-        # print(next_filepath, " : ", next_file)
+    with zipfile.ZipFile(zip_data, "r") as archive:
+        while True:
+            next_file = f"{nothing}.txt"
+            with archive.open(next_file) as f:
+                comment = archive.getinfo(next_file).comment.decode("ascii")
+                comments += comment
 
-        comment = archive.getinfo(f"{nothing}.txt").comment.decode("ascii")
-        comments += comment
-
-        match = re.search(pattern, next_file)
-        if match:
-            nothing = match.group(1)
-        else:
-            break
-
-    os.remove(zipped_filename)
-    shutil.rmtree(unzipped_folder)
+                contents = f.read().decode("ascii")
+                match = re.search(pattern, contents)
+                if match:
+                    nothing = match.group(1)
+                else:
+                    break
 
     print(comments)
 

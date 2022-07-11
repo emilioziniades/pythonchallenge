@@ -15,7 +15,6 @@ def main():
     grays = []
     for i in range(0, width, 7):
         r, g, b, _ = image.getpixel((i, row_n))
-        print(r, g, b)
         if r != g != b:
             break
         grays.append(r)
