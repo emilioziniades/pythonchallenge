@@ -20,7 +20,6 @@ def main():
         grays.append(r)
 
     message = "".join(chr(i) for i in grays)
-    print(message)
     lst = re.search(r"\[.*\]", message).group(0)
     lst = eval(lst)
     print("".join(map(chr, lst)))
